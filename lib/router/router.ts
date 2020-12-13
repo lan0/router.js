@@ -86,7 +86,7 @@ export default abstract class Router<T extends Route> {
     @param {Function} callback
   */
   map(callback: MatchCallback) {
-    this.recognizer.map(callback, function(recognizer, routes) {
+    this.recognizer.map(callback, function (recognizer, routes) {
       for (let i = routes.length - 1, proceed = true; i >= 0 && proceed; --i) {
         let route = routes[i];
         let handler = route.handler as string;
@@ -120,8 +120,9 @@ export default abstract class Router<T extends Route> {
       // perform a URL update at the end. This gives
       // the user the ability to set the url update
       // method (default is replaceState).
-      let newTransition = new InternalTransition(this, undefined, undefined);
+      let newTransition = new InternalTransition(this, undefined, newState);
       newTransition.queryParamsOnly = true;
+      this.setupContexts(newState, newTransition);
 
       oldState.queryParams = this.finalizeQueryParamChange(
         newState.routeInfos,
@@ -229,9 +230,9 @@ export default abstract class Router<T extends Route> {
     }
 
     if (isIntermediate) {
-      let transition = new InternalTransition(this, undefined, undefined);
+      let transition = new InternalTransition(this, undefined, newState);
       this.toReadOnlyInfos(transition, newState);
-      this.setupContexts(newState);
+      this.setupContexts(newState, transition);
 
       this.routeWillChange(transition);
       return this.activeTransition!;
@@ -823,7 +824,7 @@ export default abstract class Router<T extends Route> {
   */
   reset() {
     if (this.state) {
-      forEach<InternalRouteInfo<T>>(this.state.routeInfos.slice().reverse(), function(routeInfo) {
+      forEach<InternalRouteInfo<T>>(this.state.routeInfos.slice().reverse(), function (routeInfo) {
         let route = routeInfo.route;
         if (route !== undefined) {
           if (route.exit !== undefined) {
